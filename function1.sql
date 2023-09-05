@@ -1,6 +1,4 @@
------------------------------
--- 문자열 함수
------------------------------
+-- 1. 문자열 함수
 
 -- concat : 문자열 잇기 (여러 컬럼을 잇기)
 SELECT CONCAT(ename, '(', job, ')') AS 'ENAME_JOB' FROM emp;
@@ -85,7 +83,7 @@ SELECT RPAD(ename, 20, '$') 이름 FROM emp;
 
 
 
--- 날짜 함수
+-- 2. 날짜 함수
 -- curdate() == current_date()
 
 SELECT CURDATE(); -- 2023-09-04 (DATE타입) cf. EMP테이블의 HIREDATE는 DATE타입임
