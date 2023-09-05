@@ -1,4 +1,6 @@
 -- 1. 문자열 함수
+-- https://www.w3schools.com/mysql
+
 
 -- concat : 문자열 잇기 (여러 컬럼을 잇기)
 SELECT CONCAT(ename, '(', job, ')') AS 'ENAME_JOB' FROM emp;
@@ -80,28 +82,3 @@ SELECT LPAD(email, 20, '123456789') FROM professor; -- 빈 자리 만큼 채워�
 
 -- 오른쪽을 특정 문자로 채워넣기
 SELECT RPAD(ename, 20, '$') 이름 FROM emp;
-
-
-
--- 2. 날짜 함수
--- curdate() == current_date()
-
-SELECT CURDATE(); -- 2023-09-04 (DATE타입) cf. EMP테이블의 HIREDATE는 DATE타입임
-SELECT CURRENT_DATE();
-
-SELECT CURDATE()+1; -- 20230905
-
-SELECT ADDDATE(CURDATE(), INTERVAL 1 DAY); -- 2023-09-05
-SELECT ADDDATE(CURDATE(), INTERVAL 1 MONTH); -- 2023-10-04
-SELECT ADDDATE(CURDATE(), INTERVAL -1 MONTH); -- 2023-08-04
-SELECT ADDDATE(CURDATE(), INTERVAL -1 YEAR); -- 2022-09-04
-SELECT DATE_ADD(CURDATE(), INTERVAL -1 YEAR); -- 2022-09-04
-
--- emp테이블에서 각 직원의 입사일과 10년 기념일을 조회
-SELECT ename, hiredate, ADDDATE(hiredate, INTERVAL 10 YEAR) AS "10년 기념일" from emp; 
-SELECT ename, hiredate, ADDDATE(hiredate, 2) FROM emp; -- 이틀 후 (기본은 DAY)
-
--- curtime() == current_time()
-SELECT CURTIME(), CURRENT_TIME(); -- 17:49:26 (TIME타입)
-
-SELECT NOW(); -- 2023-09-04 17:49:44 (DATETIME타입)
