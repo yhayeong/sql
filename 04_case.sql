@@ -53,22 +53,18 @@ ORDER BY 지역;
 
 
 
-
-
-
-
-
 -- student테이블에서 생년월일을 참조하여 태어난 달과 분기를 조회
-SELECT NAME 이름, BIRTHDAY 생년월일, MONTH(BIRTHDAY) 태어난달, 
-		 CASE MONTH(BIRTHDAY)
-		 WHEN '1' OR '2' OR '3' THEN '1/4분기'
-		 WHEN '4' OR '5' OR '6' THEN '2/4분기'
-		 WHEN '7' OR '8' OR '9' THEN '3/4분기'
-		 WHEN '10' OR '11' OR '12' THEN '4/4분기'
-		 END AS 분기
-FROM STUDENT
-ORDER BY 분기; 
--- NULL들이 있음@@@
+
+-- SELECT NAME 이름, BIRTHDAY 생년월일, MONTH(BIRTHDAY) 태어난달, 
+--		 CASE MONTH(BIRTHDAY)
+--		 WHEN '1' OR '2' OR '3' THEN '1/4분기'
+--		 WHEN '4' OR '5' OR '6' THEN '2/4분기'
+--		 WHEN '7' OR '8' OR '9' THEN '3/4분기'
+--		 WHEN '10' OR '11' OR '12' THEN '4/4분기'
+--		 END AS 분기
+-- FROM student
+-- ORDER BY 분기; 
+-- 안되는 이유는 when에서 or혹은 between같은 연산자를 사용하기 위해서는 비교대상이 있어야하기 때문
 
 SELECT NAME 이름, BIRTHDAY 생년월일, MONTH(BIRTHDAY) 태어난달, 
 		 CASE WHEN MONTH(BIRTHDAY) IN (1,2,3) THEN '1/4분기'

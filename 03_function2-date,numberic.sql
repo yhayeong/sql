@@ -151,3 +151,6 @@ HAVING AVG(weight)>=50
 -- ORDER BY deptno1, grade;
 ORDER BY AVG(weight) DESC;
 
+
+
+

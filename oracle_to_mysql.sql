@@ -226,6 +226,9 @@ insert into student values (
 insert into student values (
 9715,'허우','wooya2702',1,'7802232116780',STR_TO_DATE('19780223','%Y%m%d'),'02)6122-2345',163,51,103,null,null);
 
+-- 0905 셀프조인 수업중 추가
+ALTER TABLE student ADD CONSTRAINT FK_PROFNO FOREIGN KEY (PROFNO) REFERENCES professor (PROFNO);
+
 commit;
 drop table IF EXISTS EMP2;
 CREATE TABLE EMP2 (
