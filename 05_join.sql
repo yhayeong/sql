@@ -17,9 +17,9 @@ INSERT INTO TEST2 VALUES('A5','C5','D5');
 
 SELECT * FROM TEST1; -- 2X2
 SELECT * FROM TEST2; -- 3X3
-SELECT T1.*, T2.* FROM TEST1 T1, TEST2 T2; -- 6X5 (모든 경우의 수 : 곱하기된 결과가 나온다-카티션곱)
-SELECT T1.*, T2.* FROM TEST1 T1, TEST2 T2 WHERE T1.A='A1';
-SELECT T1.A, T2.A FROM TEST1 T1, TEST2 T2 WHERE T1.A='A1';
+SELECT T1.*, T2.* FROM TEST1 T1, TEST2 T2; -- 6X5 (모든 경우의 수 : 곱하기된 결과가 나온다-카티션곱)(행은 곱, 열은 합)
+SELECT T1.*, T2.* FROM TEST1 T1, TEST2 T2 WHERE T1.A='a1';
+SELECT T1.A, T2.A FROM TEST1 T1, TEST2 T2 WHERE T1.A='a1';
 
 SELECT E.ENAME, D.DNAME FROM EMP E, DEPT D;
 
@@ -141,7 +141,14 @@ SELECT GO.GNAME, GO.POINT, GI.GNAME
 FROM GOGAK GO JOIN GIFT GI ON GO.`POINT`>=GI.G_START
 WHERE GI.GNAME='노트북';
 
-
+/* cf. 조인 대신 서브쿼리 이용 가능
+ 
+gogak,gift테이블을 이용하여 노트북을 받을 수 있는 고객의 이름,포인트 조회 
+서브쿼리: 노트북의 g_start */
+SELECT go.gname, go.POINT
+FROM gogak go
+WHERE go.point>(SELECT g_start FROM gift WHERE gname='노트북')
+ 
 
 
 
@@ -267,6 +274,6 @@ FROM student s right JOIN professor p ON s.profno=p.profno;
 -- 고객테이블의 테이블과 비교하는것이 더 합리적임
 -- (조인은 곱하는것이고 서브쿼리는 더하여 조회하는 것)
 
-
+ 
 
 
