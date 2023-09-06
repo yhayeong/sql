@@ -88,19 +88,20 @@ WHERE E.DEPTNO <> (SELECT DEPTNO FROM DEPT WHERE DNAME='SALES');
 
 /* student테이블에서 학점이 B미만인 학생의 목록을 조회 
 서브쿼리(비교에 쓸 행): 학점 B0의 최소 점수 */
-
 SELECT S.STUDNO, S.NAME, E.TOTAL
 FROM STUDENT S
 JOIN EXAM_01 E USING(STUDNO)
 WHERE E.TOTAL < (SELECT MIN_POINT FROM HAKJUM WHERE GRADE='B0');
 
--- cf. 서브쿼리 이용하지 않고 구해보기 @@@ 미완성
+-- cf. 서브쿼리 이용하지 않고 구해보기
 SELECT S.STUDNO, S.NAME, E.TOTAL, H.GRADE
 FROM STUDENT S
 JOIN EXAM_01 E USING(STUDNO)
 JOIN HAKJUM H ON E.TOTAL BETWEEN H.MIN_POINT AND H.MAX_POINT
-WHERE H.GRADE not like 'A%' or H.GRADE not like'B%';
+WHERE H.GRADE NOT LIKE 'A%' AND H.GRADE NOT LIKE'B%';
 -- WHERE H.GRADE NOT IN ('A+', 'A0', 'B+', 'B0');
+
+
 
 /* 학점이 A0인 학생 목록 조회
 서브쿼리: A0의 최소점수와 A0의 최대점수 - where절에서 학생의점수와 between연산에 사용 */
@@ -137,6 +138,103 @@ WHERE E.PAY >ANY (SELECT PAY FROM EMP2 WHERE `POSITION`='과장');
 SELECT E.EMPNO, E.NAME, E.`POSITION`, E.PAY
 FROM EMP2 E
 WHERE E.PAY > (SELECT MIN(PAY) FROM EMP2 WHERE `POSITION`='과장');
+
+
+/* *** 학년별로 가장 키가 큰 학생을 조회 
+다중열 다중행 서브쿼리: 학년별 가장 큰 키 (그룹바이 이용) */
+SELECT grade, NAME, height
+FROM student 
+WHERE (grade, height) in (SELECT grade, max(height)
+									FROM student
+									GROUP BY grade)
+ORDER BY 2;
+-- where절에 2개이상의 컬럼을 비교대상으로 할 수 있다(연산자 오른쪽 역시 다중열이어야함)
+-- *** where절에서 피연산자1과 피연산자2의 컬럼수가 같아야함
+-- 정리: 다중행서브쿼리와 함께 사용하는 in연산자는 다중열 비교도 가능하다
+
+
+
+/* student테이블에서 2학년인 학생 중 몸무게가 가장 적게 나가는 학생보다 몸무게가 적은 학생 목록 조회 
+다중행 서브쿼리: 2학년인 학생들의 몸무게 */
+
+SELECT s.name, s.grade, s.weight
+FROM student s 
+WHERE s.weight <all (SELECT weight FROM student WHERE grade=2);
+
+-- 단일행 서브쿼리를 이용할 수도 있다
+SELECT s.name, s.grade, s.weight
+FROM student s 
+WHERE s.weight < (SELECT min(weight) FROM student WHERE grade=2);
+
+
+
+
+
+
+/* 
+지금까지는 서브쿼리가 메인쿼리에 의존적이지 않았다
+아래와 같은 경우는 서브쿼리가 메인쿼리에 의존적인 경우에 해당(성능이슈가 있으나 편리를 위해 서브쿼리를 사용하기도 함)
+이런 경우는 별칭을 통해 메인쿼리->서브쿼리에서 사용
+
+Q. emp2테이블에서 자신이 속한 부서의 평균연봉보다 적게 받는 직원을 조회
+단일행 서브쿼리: 부서별 평균 연봉
+*/
+
+-- 선생님(7행)
+SELECT e1.name, e1.pay, d.dname
+FROM emp2 e1
+JOIN dept2 d ON e1.DEPTNO=d.dcode
+WHERE e1.pay < (SELECT AVG(pay) FROM emp2 WHERE deptno=e1.deptno);
+-- 서브쿼리가 메인쿼리에 의존적이므로(서브쿼리에서 메인쿼리의 컬럼을 사용중), 서브쿼리만 단독 실행 불가함
+
+-- 다중행 서브쿼리 이용해보기?
+-- SELECT e.* FROM emp2 
+-- WHERE e.pay <any (SELECT deptno, AVG(pay)
+-- 					FROM emp2
+-- 					GROUP BY deptno);
+-- 미해결@@@ 
+-- 불가한 이유: 조회대상인 직원들의 부서에 따라 where절의 비교기준이 달라져야하는 문제이므로 서브쿼리가 부서별평균연봉이기만 하면 x..?
+-- detpno는 일치하면서 avg는 <비교해보기
+
+
+
+
+
+ 
+
+
+
+/* emp2, dept2테이블에서 각 부서별 평균연봉을 구하고 
+그 중에서 평균연봉이 가장 적은 부서의 평균연봉보다 많이 받는 직원들의 직원명, 부서명, 연봉 조회
+다중행 서브쿼리: 각 부서별 평균연봉 (부서개수인 13행)(부서코드 없이 평균연봉 한 컬럼만 반환) */
+
+SELECT e.NAME, d.DNAME, e.PAY
+FROM emp2 e
+JOIN dept2 d ON e.DEPTNO=d.DCODE
+WHERE e.pay <ANY (SELECT AVG(pay)
+						FROM emp2
+						GROUP BY DEPTNO);
+-- cf. 그룹바이할때는 select절에 그룹함수와 그룹핑에 사용한 컬럼명만 작성 가능						
+	
+						
+/* professor, department테이블에서 각 학과별 입사일이 가장 오래된 교수의 교수번호, 이름, 입사일, 학과명 조회 
+다중열 다중열 서브쿼리: 학과별 가장 오래된min 입사일 
+다중행 서브쿼리와 함께 사용하는 비교연산자 in은 다중컬럼 비교도 가능하다 */
+SELECT p.profno, p.name, p.hiredate, d.dname
+FROM professor p
+JOIN department d using(deptno)
+WHERE (p.deptno, p.hiredate) IN (SELECT deptno, MIN(hiredate)
+											FROM professor
+											GROUP BY deptno);
+						
+
+
+
+
+
+
+
+
 
 
 
