@@ -171,36 +171,20 @@ WHERE s.weight < (SELECT min(weight) FROM student WHERE grade=2);
 
 
 
-/* 
-지금까지는 서브쿼리가 메인쿼리에 의존적이지 않았다
-아래와 같은 경우는 서브쿼리가 메인쿼리에 의존적인 경우에 해당(성능이슈가 있으나 편리를 위해 서브쿼리를 사용하기도 함)
-이런 경우는 별칭을 통해 메인쿼리->서브쿼리에서 사용
+/* 3. 지금까지는 서브쿼리가 메인쿼리에 의존적이지 않았다
+@@@ 다음은 서브쿼리가 메인쿼리에 의존적인 경우에 해당(성능이슈가 있으나 편리를 위해 서브쿼리를 사용하기도 함)
+이런 경우는 (별칭을 통해)메인쿼리의 컬럼을 서브쿼리에서 사용
 
 Q. emp2테이블에서 자신이 속한 부서의 평균연봉보다 적게 받는 직원을 조회
 단일행 서브쿼리: 부서별 평균 연봉
 */
-
--- 선생님(7행)
 SELECT e1.name, e1.pay, d.dname
 FROM emp2 e1
 JOIN dept2 d ON e1.DEPTNO=d.dcode
 WHERE e1.pay < (SELECT AVG(pay) FROM emp2 WHERE deptno=e1.deptno);
 -- 서브쿼리가 메인쿼리에 의존적이므로(서브쿼리에서 메인쿼리의 컬럼을 사용중), 서브쿼리만 단독 실행 불가함
 
--- 다중행 서브쿼리 이용해보기?
--- SELECT e.* FROM emp2 
--- WHERE e.pay <any (SELECT deptno, AVG(pay)
--- 					FROM emp2
--- 					GROUP BY deptno);
--- 미해결@@@ 
--- 불가한 이유: 조회대상인 직원들의 부서에 따라 where절의 비교기준이 달라져야하는 문제이므로 서브쿼리가 부서별평균연봉이기만 하면 x..?
--- detpno는 일치하면서 avg는 <비교해보기
 
-
-
-
-
- 
 
 
 
@@ -230,16 +214,107 @@ WHERE (p.deptno, p.hiredate) IN (SELECT deptno, MIN(hiredate)
 
 
 
+/* emp2테이블에서 직급별 최대 연봉 받는 직원을 조회해라 
+서브쿼리: 직급별 연봉의 max */
+SELECT e.NAME, e.`POSITION`, e.PAY
+FROM emp2 e
+WHERE (e.`POSITION`, e.pay) IN (SELECT POSITION, max(pay)
+											FROM emp2 
+											GROUP BY POSITION);
+
+
+/* 
+@@@ student, exam_01, department테이블에서 <같은 학과 같은 학년 학생의 평균 점수>보다 점수 이상인 학생 조회 
+메인에 의존적인 서브쿼리:  학과별,학년별 평균 점수 값@@@ 이 아니라........................ */
+
+-- 18행(주의: where절에 >=가 아니라 >비교를 하게되면 평균점수와 동일한 학생들이 빠지게됨)
+SELECT s1.studno, s1.name, d.dname, s1.grade, e1.total
+FROM student s1
+JOIN exam_01 e1 USING(studno)
+JOIN department d ON s1.deptno1=d.deptno
+WHERE e1.total >= (SELECT AVG(total) 
+						FROM student s2 
+						JOIN exam_01 e2 USING(studno) 
+						WHERE s2.deptno1=s1.deptno1 
+						AND s1.grade=s2.grade)
+ORDER BY s1.deptno1, s1.grade; 
+						
+-- cf. 그룹함수를 무조건 group by와 같이 쓰는것은 아니다
+SELECT SUM(sal), AVG(sal) FROM emp WHERE deptno=10;
+
+-- 과별 학년별 평균점수 조회해보면 18행임
+SELECT deptno1, grade, AVG(total)
+FROM student s2 JOIN exam_01 e2 USING(studno)
+GROUP BY deptno1, grade;
+
+
+
+/* emp2테이블에서 직원들 중 자신의 직급의 평균 연봉 이상의 연봉을 받는  직원들 조회
+메인쿼리에 의존적인 서브쿼리 : from[emp2에서] where[기준직원들(메인쿼리의 e1)과 같은 직급을 가진 행들의] select[평균연봉] 
+*/
+
+SELECT e1.NAME, e1.position, e1.pay
+FROM emp2 e1
+WHERE (e1.`POSITION` IS NOT NULL AND TRIM(e1.position) <> '') 
+AND e1.pay >= (SELECT AVG(e2.pay) 
+					FROM emp2 e2
+					WHERE e2.position=e1.position);
+--6행- 직급이 없는 직원 제외시키는 조건문 한줄 추가
+
+
+
+/* student, professor테이블에서 담당 학생이 있는 교수들의 교수번호 교수명 조회 (9행)
+*/
+
+
+-- 1) student테이블을 기준으로
+SELECT distinct s.profno, p.name 
+FROM student s
+JOIN professor p USING(profno)
+WHERE s.profno IS NOT NULL;
+
+
+/* 2) professor테이블을 기준으로 
+where절에서 한행 한행 검토할때 서브쿼리 안에 profno가 있는지를 검토
+@@@ exist 연산자 이용 */
+SELECT p.profno, p.name
+FROM professor p
+WHERE EXISTS (SELECT * FROM student 
+					WHERE profno=p.profno);
+					
+						
+					
+/* 반대로 student, professor 테이블에서 담당 학생이 없는 교수들의 교수번호 교수명 조회 
+*/
+SELECT p.profno, p.name
+FROM professor p
+WHERE not EXISTS (SELECT * FROM student 
+					WHERE profno=p.profno);
+
+
+-- where절이 아니라 from, select절에도 서브쿼리를 사용할 수 있다
+SELECT s.profno "s.교수번호", p.name 교수명, p.profno 교수번호
+FROM (SELECT DISTINCT profno FROM student) s
+JOIN professor p USING(profno);
+-- from절의 서브쿼리: student테이블에서 profno만 (중복제거해)가져온 결과집합을 하나의 테이블로 사용 
 
 
 
 
+/* emp, dept테이블에서 직원이 한명도 소속되지 않은 부서의 부서번호와 부서명 조회 
+결과는 50, MARKETING이 나와야함
+dept의 dcode가 <emp>에 not exist인것을 찾으면 된다 */
+SELECT d.DEPTNO, d.DNAME
+FROM dept d
+WHERE NOT exists (SELECT * FROM emp
+						WHERE deptno=d.deptno);
 
 
 
+/* ***limit : 전체 결과에서 일부만 가져올때 사용 (게시판의 페이징처리)
 
-
-
-
-
+limit만 예외적으로 인덱스가 0부터 시작함
+limit 0,5 : 0번째부터 5개만 가져옴 */
+SELECT * FROM emp ORDER BY sal DESC
+LIMIT 5,5;
 
