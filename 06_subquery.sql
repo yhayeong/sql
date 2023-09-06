@@ -312,9 +312,17 @@ WHERE NOT exists (SELECT * FROM emp
 
 
 /* ***limit : 전체 결과에서 일부만 가져올때 사용 (게시판의 페이징처리)
+limit은 mySQL에만 있는 문법이다
 
-limit만 예외적으로 인덱스가 0부터 시작함
-limit 0,5 : 0번째부터 5개만 가져옴 */
+limit만 예외적으로 인덱스가 0부터 시작한다
+limit 0,5 : 0번째부터 5개만 가져옴
+
+offset키워드를 명시적으로 써줄때는 순서가 바뀐다
+limit 5 offset 0 
+*/
 SELECT * FROM emp ORDER BY sal DESC
-LIMIT 5,5;
+LIMIT 0,5;
+
+SELECT * FROM emp ORDER BY sal DESC
+LIMIT 5 OFFSET 0;
 
