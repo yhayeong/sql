@@ -83,10 +83,12 @@ DELETE FROM emp WHERE DEPTNO=40;
 
 /* 4. 트랜잭션
 트랜잭션이란 하나이상의 dml질의를 한 작업단위로 묶은것.
-START TRANSACTION 해주면 dml하는 시점에 물리적 반영이 아니라
-COMMIT하는 시점에 물리적으로 반영되고, ROLLBACK이 가능하다.
 
-MySQL은 자동커밋이 디폴트이다.
+*** START TRANSACTION 해주면 dml하는 시점에 물리적 반영이 아니라
+COMMIT하는 시점에 물리적으로 반영되고, ROLLBACK이 가능하다.
+(시작start transaction - 끝commit/rollback)
+
+*** MySQL은 자동커밋이 디폴트이다.
 즉, 트랜잭션내부에 있지 않은 경우 
 각 명령문은 마치 START TRANSACTION 및 COMMIT로 둘러싸인 것처럼 동작하기 때문에
 ROLLBACK하여 되돌릴 수 없다.
@@ -104,16 +106,6 @@ DELETE FROM emp_sub WHERE NAME='KING';
 COMMIT;
 
 SELECT * FROM emp_sub;
-
-
-
-
-
-
-
-
-
-
 
 
 
