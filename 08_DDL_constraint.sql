@@ -104,42 +104,115 @@ DELETE FROM user WHERE id='hong';
 
 ------------------------------------------------------------------------
 
--- fk 연습
+-- *** fk 연습
 
 DROP TABLE article;
 DROP TABLE user;
 
 CREATE TABLE user(
-	id INT,
+	id VARCHAR(100),
 	NAME VARCHAR(100)
 );
 
 CREATE TABLE article (
 	num INT AUTO_INCREMENT PRIMARY key,
-	-- mysql에서 오토인크리멘트는 pk여야함
+	-- mysql에서 AUTO_INCREMENT(오라클의 시퀀스에 해당)는 pk여야함
 	title VARCHAR(500),
 	content VARCHAR(1000),
-	writer int
+	writer VARCHAR(100)
 );
 
--- 제약조건 추가
+
+-- (1) 제약조건 추가
 ALTER TABLE USER ADD CONSTRAINT USER_PK PRIMARY KEY (id);
-ALTER TABLE article ADD CONSTRAINT article_user_fk FOREIGN KEY(writer) REFERENCES user(id);
+ALTER TABLE article ADD CONSTRAINT ARTICLE_USER_FK FOREIGN KEY(writer) REFERENCES user(id);
+-- [ADD CONSTRAINT 제약조건명]은 생략 가능
 
 -- 데이터 삽입
-INSERT article VALUES(NULL, '제목1', '내용1', 1111); -- 부모컬럼에 없는 값 삽입 불가(fk 위배)
-INSERT article VALUES(NULL, '제목1', '내용1', NULL); -- null은 삽입 가능 (fk 위배되지 않음)
+-- INSERT into article VALUES(NULL, '제목1', '내용1', 'hong'); -- 부모컬럼에 없는 데이터 삽입 불가(fk 위배)
+INSERT into article VALUES(NULL, '제목1', '내용1', NULL); -- null은 삽입 가능 (fk 위배되지 않음)
 
+INSERT into user VALUES('hong', '홍길동');
+INSERT INTO article VALUES(NULL, '제목2', '내용2', 'hong');
+-- 부모컬럼에 있는 데이터 삽입 가능
+
+-- DELETE FROM user WHERE id='hong';
+-- UPDATE user SET id='kong' WHERE id='hong';
+-- 참조되고 있는 부모컬럼의 데이터 삭제, 변경 불가
+
+UPDATE user SET name='콩길동' WHERE id='hong';
+-- (참조되지않는==)부모가 아닌 컬럼의 데이터 변경 가능
+
+
+-- (2) 제약조건 삭제
+ALTER TABLE article DROP CONSTRAINT ARTICLE_USER_FK;
+INSERT INTO article VALUES (NULL, '송제목', '송내용', 'song'); 
+-- 제약조건이 삭제됐기 때문에 부모컬럼에 없는 song값을 writer컬럼에 넣을 수 있음
+
+-- ALTER TABLE article ADD CONSTRAINT ARTICLE_USER_FK FOREIGN KEY(writer) REFERENCES user(id);
+-- 다시 제약조건 생성하려고하면 에러 발생하는데 그 이유는
+-- 참조대상인 부모컬럼에 없는 값(제약조건에 위배되는 데이터)을 이미 가지고 있기 때문이다.
+
+UPDATE article SET writer='hong' WHERE writer<>'hong';
+-- fk위배를 해소하기 위해 hong이 아닌 데이터를 모두 hong으로 바꾼 뒤 다시 제약조건을 생성해본다
+
+
+-- (3) ON DELETE CASCADE 옵션
+ALTER TABLE article ADD CONSTRAINT ARTICLE_USER_FK FOREIGN KEY(writer) REFERENCES user(id) 
+ON DELETE CASCADE;
+-- 위와 같은 문제 발생을 예방하는 방법으로
+-- fk를 생성할때 ON DELETE CASCADE 옵션을 추가하면 부모컬럼의 데이터를 삭제할때 참조하는 자식컬럼의 데이터 역시 삭제된다
+
+DELETE FROM user WHERE id='hong';
+-- 이제 참조되고있는 부모컬럼의 데이터이더라도 삭제 가능하며, 자식컬럼의 데이터가 함께 삭제된다 
+
+-- 하지만 ON DELETE CASCADE는 위험성이 높아 실무에서 지양하는 방법이다
+-- (참조여부를 인지하지 못한 채로 다수의 테이블에서 데이터를 삭제하게 될 가능성 때문)
+ 
+------------------------------------------------------------------------
+
+/* 제약조건 설정 표현식 정리
+
+CREATE TABLE 테이블명(
+	컬럼명1 자료형(사이즈) PRIMARY KEY,
+	컬럼명2 자료형(사이즈) NOT NULL REFERENCES 부모테이블(부모컬럼)
+);
+
+CREATE TABLE 테이블명(
+	컬럼명1 자료형(사이즈),
+	컬럼명2 자료형(사이즈) NOT NULL,
+	PRIMARY KEY(컬럼명1)
+);
+
+CREATE TABLE 테이블명(
+	컬럼명1 INT AUTO_INCREMENT,
+	컬럼명2 자료형(사이즈),
+	PRIMARY KEY(컬럼명1),
+	FOREIGN KEY(컬럼명2) REFERENCES 부모테이블(부모컬럼)
+);
+
+*/
 
 
 ------------------------------------------------------------------------
 
+-- fk 연습문제
+-- 실행없이 작성만 하기
 
-
-
-------------------------------------------------------------------------
-
-
+CREATE TABLE tcons (
+	NO INT,
+	NAME VARCHAR(20),
+	jumin VARCHAR(13),
+	AREA INT,
+	deptno VARCHAR(6)
+);
+ALTER TABLE tcons ADD CONSTRAINT tcons_no_pk PRIMARY KEY(NO);
+ALTER TABLE tcons modify CONSTRAINT name VARCHAR(20) NOT null;
+ALTER TABLE tcons modify CONSTRAINT jumin VARCHAR(23) NOT NULL;
+-- 주의 : not null은 '컬럼의 수정'에 해당
+ALTER TABLE tcons ADD CONSTRAINT tcons_jumin_uk UNIQUE(jumin);
+ALTER TABLE tcons ADD CONSTRAINT tcons_area_ck CHECK(AREA IN(1,2,3,4));
+ALTER TABLE tcons ADD CONSTRAINT tcons_deptno_fk FOREIGN KEY(deptno) REFERENCES dept2(dcode);
 
 ------------------------------------------------------------------------
 
