@@ -85,9 +85,9 @@ DELETE FROM user WHERE id='hong';
 ALTER TABLE article
 ADD CONSTRAINT ARTICLE_USER_FK
 FOREIGN KEY(writer) REFERENCES user(id);
--- *** fk 만들기 오류나는 이유로,
--- article의 writer에는 hong이 있는데, 참조하고자하는 부모테이블의 id에 hong이 없었기 때문
--- 제약조건에 위배되는 데이터 hong 때문에(즉 writer가 부모컬럼에 없는 값을 가지고 있기 때문에) fk로 만들수없다
+-- *** fk 설정 오류 이유 :
+-- fk로 설정하고자하는 컬럼인 writer에는 hong이 있는데, 참조하고자하는 부모컬럼 id에 hong이 없는상태이기 때문
+-- 제약조건에 위배되는 데이터hong 때문에(즉 writer가 부모컬럼에 없는 값을 가지고 있기 때문에) fk로 만들수없다
 
 ALTER TABLE article DROP FOREIGN KEY ARTICLE_USER_FK;
 
@@ -103,6 +103,32 @@ DELETE FROM user WHERE id='hong';
 -- article테이블의 writer컬럼의 데이터'hong'역시 삭제된다 (행 삭제)
 
 ------------------------------------------------------------------------
+
+-- fk 연습
+
+DROP TABLE article;
+DROP TABLE user;
+
+CREATE TABLE user(
+	id INT,
+	NAME VARCHAR(100)
+);
+
+CREATE TABLE article (
+	num INT AUTO_INCREMENT PRIMARY key,
+	-- mysql에서 오토인크리멘트는 pk여야함
+	title VARCHAR(500),
+	content VARCHAR(1000),
+	writer int
+);
+
+-- 제약조건 추가
+ALTER TABLE USER ADD CONSTRAINT USER_PK PRIMARY KEY (id);
+ALTER TABLE article ADD CONSTRAINT article_user_fk FOREIGN KEY(writer) REFERENCES user(id);
+
+-- 데이터 삽입
+INSERT article VALUES(NULL, '제목1', '내용1', 1111); -- 부모컬럼에 없는 값 삽입 불가(fk 위배)
+INSERT article VALUES(NULL, '제목1', '내용1', NULL); -- null은 삽입 가능 (fk 위배되지 않음)
 
 
 
