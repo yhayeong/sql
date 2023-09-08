@@ -1,6 +1,7 @@
 /* 개요
 DDL : 테이블을 조작
 create, alter, truncate(잘라내기/비우기), drop(삭제)
+ + 제약조건
 
 DML : 데이터를 조작
 insert, update, delete, merge(병합)

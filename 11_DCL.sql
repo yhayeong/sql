@@ -35,7 +35,7 @@ SHOW GRANTS FOR '계정명';
 -- root계정에서 실행
 ------------------------
 CREATE user kosta IDENTIFIED BY '1234';
-ALTER USER kosta IDENTIFIED BY '2345';
+ALTER USER kosta IDENTIFIED BY '1234';
 DROP USER kosta;
 
 GRANT SELECT, INSERT, UPDATE ON testdb.* TO 'kosta'; -- delete를 제외한 dml 권한 부여

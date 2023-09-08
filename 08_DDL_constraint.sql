@@ -1,6 +1,4 @@
--- DCL : 계정의 권한 조작
--- grant(권한 부여), revoke(권한 회수)
--- ex. 제약 - 참조하고 있는 자식테이블의 데이터가 있는 경우에는 삭제 불가 or 부모테이블의 값을 함께 삭제
+-- DDL
 
 -- 제약조건
 -- not null, unique, primary key, foreign key, check
