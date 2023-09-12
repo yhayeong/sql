@@ -1,4 +1,4 @@
--- Test_MariaDB_Script.sql
+-- Test_MariaDB_Script.sql (KTDS Product & Factory)
 -- SQL_실기문제_수정.docs
 
 /* 
